@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PSG Inventory Management - Mobile Master</title>
+    <title>PSG Inventory Management Master</title>
     <style>
         :root {
             --primary: #1a237e;
@@ -44,7 +44,7 @@
         <div id="q-list"></div>
         <div class="nav">
             <button id="prevBtn" onclick="movePage(-1)">Back</button>
-            <span class="page-info" id="pageIndicator">Page 1/6</span>
+            <span class="page-info" id="pageIndicator">Page 1 / 6</span>
             <button id="nextBtn" onclick="movePage(1)">Next</button>
         </div>
     </div>
@@ -208,7 +208,7 @@
             `;
             list.appendChild(div);
         }
-        document.getElementById('pageIndicator').innerText = `Page ${current + 1} / 6`;
+        document.getElementById('pageIndicator').innerText = "Page " + (current + 1) + " / 6";
         document.getElementById('prevBtn').style.visibility = current === 0 ? "hidden" : "visible";
         document.getElementById('nextBtn').innerText = current === 5 ? "Submit Exam" : "Next";
     }
@@ -231,14 +231,14 @@
         document.getElementById('score-screen').style.display = "block";
         document.getElementById('points').innerText = score + " / 120";
         const p = (score/120)*100;
-        document.getElementById('commentary').innerText = `Final Score: ${p.toFixed(1)}%. You are ready for PSG!`;
+        document.getElementById('commentary').innerText = "Final Score: " + p.toFixed(1) + "%. You are ready for PSG!";
     }
 
     let timeLeft = 7200;
     setInterval(() => {
         let m = Math.floor(timeLeft / 60);
         let s = timeLeft % 60;
-        document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+        document.getElementById('timer').innerText = m + ":" + (s < 10 ? "0" : "") + s;
         if (timeLeft > 0) timeLeft--;
     }, 1000);
 
