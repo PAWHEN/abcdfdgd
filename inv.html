@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSG Inventory Management - Mobile Master</title>
+    <style>
+        :root {
+            --primary: #1a237e;
+            --accent: #3f51b5;
+            --bg: #f5f7fa;
+            --text: #2c3e50;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        header { border-bottom: 2px solid #eee; margin-bottom: 20px; padding-bottom: 10px; position: sticky; top: 0; background: white; z-index: 10; }
+        h1 { font-size: 1.2rem; color: var(--primary); margin: 0; text-align: center; }
+        #timer { text-align: center; font-weight: bold; color: #d32f2f; font-size: 1rem; margin-top: 5px; }
+        .q-block { margin-bottom: 30px; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .q-text { font-size: 1.05rem; font-weight: 600; margin-bottom: 15px; display: block; line-height: 1.4; }
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .opt { display: flex; align-items: flex-start; padding: 15px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; transition: 0.2s; background: #fff; }
+        .opt:active { background: #e8eaf6; transform: scale(0.98); }
+        .opt input { margin-right: 12px; margin-top: 4px; transform: scale(1.2); }
+        .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
+        button { padding: 15px 25px; border-radius: 8px; border: none; font-weight: bold; font-size: 1rem; cursor: pointer; min-width: 100px; }
+        #nextBtn { background: var(--accent); color: white; }
+        #prevBtn { background: #cfd8dc; color: #37474f; }
+        #score-screen { display: none; text-align: center; padding: 40px 10px; }
+        .final-score { font-size: 4rem; font-weight: 900; color: #2e7d32; margin: 20px 0; }
+        .page-info { font-size: 0.9rem; font-weight: bold; color: #777; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Inventory Management Master</h1>
+        <div id="timer">120:00</div>
+    </header>
+    
+    <div id="quiz-area">
+        <div id="q-list"></div>
+        <div class="nav">
+            <button id="prevBtn" onclick="movePage(-1)">Back</button>
+            <span class="page-info" id="pageIndicator">Page 1/6</span>
+            <button id="nextBtn" onclick="movePage(1)">Next</button>
+        </div>
+    </div>
+
+    <div id="score-screen">
+        <h2>PSG Mock Result</h2>
+        <div class="final-score" id="points"></div>
+        <p id="commentary"></p>
+        <button onclick="location.reload()" style="background: var(--accent); color: white;">Restart Quiz</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        {q: "The main advantage of a reverse logistics in SCM is:", opts: ["Reduction of disposal cost", "Reduced wastes", "Reduced supply quantity", "All of the above"], ans: 3},
+        {q: "Working of the inbound logistic as well as the outbound logistic systems significantly affects a company’s", opts: ["Production control and Inventory control", "Inventory control and Quality control", "Production control and Quality control", "Production control, Inventory control, and Quality control"], ans: 3},
+        {q: "While you design an SC network for a company, specific condition to be satisfied is:", opts: ["Tradeoff between inventory investment and service level", "Evaluation and improvement in performance of supply chains", "Both (a) and (b)", "None of (a) or (b)"], ans: 0},
+        {q: "The reverse logistics is a part of", opts: ["Open-loop supply chain", "Closed-loop supply chain", "Feedforward supply chain", "All of the above"], ans: 1},
+        {q: "The major advantage of reverse supply chain logistic is", opts: ["Reduction of wastes", "Avoidance of disposal cost", "Avoidance of salvage", "All of the above"], ans: 3},
+        {q: "An SCM builds up on the flow of materials among different supply chain members. These members are:", opts: ["Suppliers and manufacturers", "Service providers and customers", "Both (a) and (b)", "Neither (a) nor (b)"], ans: 2},
+        {q: "In today’s industrial context, performance modelling and analysis of a given SC network is a must. The modelling and analysis requires primarily the use of", opts: ["Logic of pull system", "JIT-based approaches", "Logic of push system", "Synchronous production"], ans: 2},
+        {q: "The major risk is ‘loss of control due to outsourcing’ while implanting", opts: ["Third-party logistics (3PL)", "Reverse Logistics", "Environmental supply chain", "none of the above"], ans: 0},
+        {q: "The process of integration of supply chain (SC) has a number of phases. The number of such phases is:", opts: ["1", "2", "3", "4"], ans: 2},
+        {q: "‘Value engineering’ is a techniques that is required to be used at the pre-production or design stage of a product and ‘Value analysis’ for a product is carried out at its", opts: ["Post-production stage", "Marketing stage", "Production stage", "Design stage"], ans: 2},
+        {q: "An inventory valuation method should be", opts: ["practical", "reliable", "easy to use", "all of the above"], ans: 3},
+        {q: "An item that requires weather conditioning requires a special type of stores. This store is known as", opts: ["Closed store", "Open store", "Special store", "Centralized store"], ans: 1},
+        {q: "A Value Engineering or a Value Analysis exercise for a product or a system involves", opts: ["preparation, project selection", "information, evaluation and creation", "selection and presentation, and implementation and follow-up", "All of the above"], ans: 3},
+        {q: "A FIFO inventory flow method is applicable for", opts: ["Both perpetual and periodic inventory control systems", "A perpetual inventory control system and a continuous review system", "A periodic inventory control system and a continuous review system", "A periodic, perpetual, and continuous review system"], ans: 0},
+        {q: "For storing of inventory items, how many types of location can be used?", opts: ["Two", "Three", "Four", "None of the above"], ans: 1},
+        {q: "The number of ways with which the ‘value’ of a product or a system can be increased is", opts: ["2", "2 (repeated)", "3", "4"], ans: 2},
+        {q: "The number of possible inventory flow methods is", opts: ["1", "2", "3", "4"], ans: 2},
+        {q: "The latest price is considered while computing the value of balance inventory of an item at a time period in", opts: ["FIFO method", "Simple average method", "Specific cost method", "LIFO method"], ans: 3},
+        {q: "The value of a product or a system can be of", opts: ["Two types", "Three types", "Four types", "Six types"], ans: 2},
+        {q: "Non-bottleneck resources may have excess capacity that can be used as", opts: ["Preventive maintenance and Set up", "Set up and Address of special problems", "Both a and b", "None of the above"], ans: 2},
+        {q: "Produce-to-capacity constraint is classified in", opts: ["Two broad categories", "Three broad categories", "Four broad categories", "Five broad categories"], ans: 0},
+        {q: "When a resource is managed, the time required for handling the resource can be classified under the categories of", opts: ["Production time, processing time, and idle time", "Idle time, processing time, and setup time", "Production time, processing time, and setup time", "Production time, setup time, and idle time"], ans: 3},
+        {q: "The classical EOQ model is not applicable under TOC concept. The reason is:", opts: ["It does not consider constraints", "It does not consider throughput", "It is accost-based approach", "All of the above"], ans: 3},
+        {q: "What are the goals of a business firm?", opts: ["Increasing net profit", "Increasing return on investment", "Increasing cash flow", "All of the above"], ans: 3},
+        {q: "Among the three plants, which plant is designed and operated under ‘assemble-to-order’ marketing strategy?", opts: ["V- Plant", "T - Plant", "Z – Plant", "Y - Plant"], ans: 1},
+        {q: "There may be two types of constraints: internal or external. Which ones among the constraints: (i) resource capacity (ii) management policy (iii) market demand and (iv) supply limitation, are considered external constraint?", opts: ["(i) and (ii)", "(ii) and (iii)", "(iii) and (iv)", "(iv) and (i)"], ans: 2},
+        {q: "As per TOC principles", opts: ["A transfer batch is necessarily less than a process batch", "A transfer batch is necessarily more than a process batch", "A transfer batch is equal or more than a process batch", "A transfer batch does not have any relation with the process batch"], ans: 0},
+        {q: "In terms of TOC, return on investment is defined as", opts: ["throughput - operating expense", "throughput/inventory", "throughput/operating expense", "net profit/inventory"], ans: 3},
+        {q: "The goal for the bottleneck resources is", opts: ["Maximization of setup time and minimization of idle time", "Minimization of setup and idle time", "Maximization of setup time and idle time", "None of the above"], ans: 1},
+        {q: "While you go for ‘make or buy’ decision against a particular item, cost comparison is made along with consideration of a number of other relevant factors. What are these factors?", opts: ["Quality control and Scheduling factor", "Quantity factor and Scheduling factor", "Quality control, Scheduling factor, and Quantity factor", "None of the above factors are considered"], ans: 2},
+        {q: "On completion of negotiation, how many suppliers are usually being selected?", opts: ["1", "2-3", "5-6", "As many as possible"], ans: 1},
+        {q: "A typical supplier performance rating system considers some factors when the supplier base for an item remains constant. The set of factors are:", opts: ["Quantity, quality, and delivery time", "Company, service, products, and sales personnel", "Both (a) and (b)", "neither (a) nor (b)"], ans: 0},
+        {q: "In respect of purchasing, materials management is concerned with fulfilling a number of objectives. The main objective is:", opts: ["Checking receipt of materials", "Maintaining minimum stock", "Issuing purchase orders", "Negotiating contracts"], ans: 1},
+        {q: "There are a few interrelated stages in the supplier selection process. The number of these stages is", opts: ["1", "2", "3", "4"], ans: 3},
+        {q: "Purchase expenditure in non-profit organizations generally represents", opts: ["Higher percentage of income", "Lower percentage of income", "Higher percentage of expense", "Lower percentage of expense"], ans: 1},
+        {q: "Purchase in labour-intensive industries is generally", opts: ["Low", "High", "Depends on the number of workers", "Negligible"], ans: 0},
+        {q: "In general, a 10% increase in sales volume increases the revenue by", opts: ["10%", "20%", "30%", "40%"], ans: 2},
+        {q: "Purchase cost of materials, where single raw material makes up the bulk of the finished product, may be about", opts: ["60% of purchase cost", "75% of raw material cost", "85% of finished product cost", "90% of sales value"], ans: 2},
+        {q: "In the majority of the manufacturing systems, the contribution of material costs to total product cost is approximately", opts: ["10-20%", "20-40%", "30-50%", "40-60%"], ans: 3},
+        {q: "In a probabilistic case, the number of kanbans is determined only when the following information is known:", opts: ["Probability mass function of number of kanbans", "Holding cost", "Shortage cost per container", "All the above information a, b and c is required"], ans: 3},
+        {q: "JIT-based system is feasible, with", opts: ["Kanban", "no Kanban", "Both a and b are possible", "Neither a nor b"], ans: 2},
+        {q: "In a KANBAN system, the primary function of a conveyance Kanban is to", opts: ["Pass the authorization of movement of parts", "Release an order to the preceding process", "Produce parts equal to the lot size specified", "All of above"], ans: 0},
+        {q: "A pull-type production system is required when the demand pattern for an item is", opts: ["Steady", "Erratic", "Independent", "Dependent"], ans: 1},
+        {q: "In JIT-based inventory systems, wastes are grouped under", opts: ["Muda", "Mura", "Muri", "All of the above"], ans: 3},
+        {q: "In a JIT-based production system, lot size of an item is assumed to be", opts: ["Maximum possible", "Minimum possible", "1", "0"], ans: 2},
+        {q: "In a KANBAN system, the quantity of parts produced by preceding process and withdrawn by successor process must be", opts: ["Equal", "Significantly more", "Significantly less", "Minimum"], ans: 0},
+        {q: "Monthly demand: 20,000 units, Container capacity: 50, Lead time: 1 day, 24 days/month, policy variable 0.40. Number of Kanbans?", opts: ["21", "22", "23", "24"], ans: 2},
+        {q: "The main advantage of running a JIT-based system in a manufacturing or a service organization is", opts: ["Cost minimization and Quality enhancement", "Quality enhancement and Throughput time reduction", "Both a and b", "None of the above"], ans: 2},
+        {q: "In order to achieve the JIT goal of unit batch size, setup cost should tend to be", opts: ["Zero", "Infinity", "Maximum", "Minimum"], ans: 0},
+        {q: "A DRP system can identify the problem in", opts: ["Distribution system", "Manufacturing system", "Marketing system", "All functions of an organization"], ans: 0},
+        {q: "If the cumulative lead times for the products of a three-product firm are 3, 6, and 9 weeks, the planning horizon for MPS should be at least", opts: ["3 weeks", "6 weeks", "9 weeks", "1 week"], ans: 2},
+        {q: "In an MRP system, the outputs are", opts: ["Purchase order", "Reschedule notices", "Work order", "All of the above"], ans: 3},
+        {q: "Among different types of inventories considered in a manufacturing system, modelling and control of inventory level is most difficult for", opts: ["Raw materials", "WIP", "Finished goods", "MRO items"], ans: 1},
+        {q: "In MRP, lead time is assumed to be a", opts: ["Variable", "Semi-variable", "Partly fixed", "Constant"], ans: 3},
+        {q: "In an MRP system, the process plan is assumed to be", opts: ["Fixed", "Variable", "User-determined", "Not considered"], ans: 0},
+        {q: "MRP-II results in a single integrated plan with a set of modules. These modules refer to the following functions:", opts: ["Manufacturing and marketing", "Engineering, and finance", "Both a and b", "Neither a nor b"], ans: 2},
+        {q: "The major inputs to an MRP system are:", opts: ["Inventory status", "MPS (Master Production Schedule)", "Bill of materials", "All of the above"], ans: 3},
+        {q: "Related to an MRP system, which statement is true?", opts: ["Lead time is considered a variable", "Priority rule is due date or period", "Process plan is flexible", "Capacity constraint is considered"], ans: 1},
+        {q: "For a ‘dependent’ demand item, its requirements are determined by the demand of item(s) at ‘higher’ level. The inventory control system recommended for such an item is", opts: ["Q-system", "P-system", "EOQ-based system", "MRP"], ans: 3},
+        {q: "For determining Reorder Level in a Q-system of inventory control, we need to determine", opts: ["average demand during lead time", "Safety stock", "Both a and b", "None"], ans: 2},
+        {q: "Safety stock is maintained at a high-level if", opts: ["Service level is low", "Inventory holding cost is negligible", "Cost of stockout is high", "No variation in demand"], ans: 2},
+        {q: "When measuring goodness of fit for a probability distribution of demand or lead time, if the sample size is small, the recommended statistical test is", opts: ["Ch-square", "Kolmogorov-Smirnov Test", "Anderson-Darling Test", "None of the above"], ans: 1},
+        {q: "For small and infrequent demand where demand rate is fairly constant, which one of the following probability distributions of demand is considered a good fit?", opts: ["Uniform", "Poisson", "Exponential", "Normal"], ans: 1},
+        {q: "In Dynamic Inventory Problems under Risk, the probability distribution of demand may be known using", opts: ["Frequency counts and past data pattern", "Past data pattern and expert opinion", "Both a and b", "None of the above"], ans: 2},
+        {q: "For P-system under cost-based approach, order T, backorder A, holding H, optimal stockout prob is:", opts: ["HT/A", "HT/(A-HT)", "HT/(A+HT)", "(A-HT)/A"], ans: 0},
+        {q: "Weekly mean 25 SD 6. H Rs 10, Backorder Rs 45, Q 50, Lead time 1 week. Optimum reorder point?", opts: ["25", "26", "27", "28"], ans: 3},
+        {q: "When lost sales cost per unit is considered, negative inventory does not occur when:", opts: ["M ≥ B", "M = B", "M ≤ B", "M < B"], ans: 0},
+        {q: "For exact method of analysis for a P-system, the decision variables are", opts: ["Reorder level and Order Quantity", "Order Period and Order Quantity", "Order period and Safety Stock", "Safety Stock and Reorder level"], ans: 2},
+        {q: "If service level is 1, safety stock is at", opts: ["Infinite level", "Zero level", "Maximum level", "Minimum level"], ans: 0},
+        {q: "When demand is variable and lead time constant, optimal stockout prob depends on", opts: ["Backordering/holding", "Average demand/holding", "Backorder/holding/demand", "Backorder/holding/demand/qty"], ans: 3},
+        {q: "For a continuous review system, parameters to be considered are", opts: ["Order quantity and reorder point", "Order quantity and fixed interval", "Reorder point and lead time", "Reorder point and demand level"], ans: 0},
+        {q: "Continuous review system is also known as", opts: ["P-system", "Q-system", "PQ-system", "None"], ans: 1},
+        {q: "Fixed order interval system is also called as", opts: ["P-system", "Q-system", "PQ-system", "None"], ans: 0},
+        {q: "Under dynamic inventory certainty, demand is expressed in", opts: ["Total number of units", "Some constant rate over time", "Total units and constant rate", "No need"], ans: 2},
+        {q: "Inexpensive and unimportant items are applicable for", opts: ["Fixed order size system", "Variable order size system", "Periodic review system", "Variable order interval system"], ans: 2},
+        {q: "Outside supply case comes under", opts: ["EOQ Model", "EPQ Model", "EGQ Model", "None"], ans: 0},
+        {q: "Concept of ‘optimal policy curve’ represents a constant of:", opts: ["Avg Inv × EOQ", "EOQ × safety stock", "Orders × ROP", "Avg Inv × Total orders"], ans: 3},
+        {q: "Daily demand 2000, setup Rs 10, unit Rs 100, holding 5%, production 5000/day. EPQ?", opts: ["2109", "2206", "2305", "2401"], ans: 1},
+        {q: "Usage 20,000, unit Rs 1, order Rs 100, carrying 20%. EOQ?", opts: ["4400", "3156", "4472", "3162"], ans: 2},
+        {q: "Q-System is also called as", opts: ["Fixed order size system", "Variable size", "Fixed interval", "Variable interval"], ans: 0},
+        {q: "Convolution of demand distribution for n time periods-", opts: ["Independently", "With respect to moments of demand", "With respect to moments of lead time", "Not by any means"], ans: 1},
+        {q: "When out-of-stock cost is difficult to measure in Q-system, determine by:", opts: ["Standard", "Fixed cost", "Per unit cost", "All of the above"], ans: 3},
+        {q: "Wald Criterion for payoff costs (Strategy 1: 3.50, 2: 7.00, 3: 10.50):", opts: ["3", "2", "1", "None"], ans: 2},
+        {q: "Uncertainty can be converted into risk applying", opts: ["Savage criterion", "Bayes criterion", "Wald criterion", "All of the above"], ans: 1},
+        {q: "Savage Criterion (Regret: Order 1: 7.0, 2: 3.5, 3: 3.0):", opts: ["1", "2", "3", "None"], ans: 2},
+        {q: "With the Tchebycheff inequalities, the solution reached is", opts: ["Best", "Worst", "Average", "Satisficing"], ans: 3},
+        {q: "Avg 100, SD 25, unit cost 15, fixed stockout 5062.5. Qty:", opts: ["100", "120", "150", "175"], ans: 3},
+        {q: "Tchebycheff: Avg 100, SD 15, c 25, penalty 250. Qty:", opts: ["154.3", "150.7", "151.9", "153.4"], ans: 0},
+        {q: "Moment order r and absolute moment order r same for", opts: ["All values of r", "Even values of r", "Odd values of r", "None of above"], ans: 1},
+        {q: "If there is ‘no information’ on demand/lead time, can it be formulated?", opts: ["No", "Yes", "Yes with 4th moment", "Yes with 2nd moment"], ans: 3},
+        {q: "Demand and lead time dependent, variance of demand during lead time is:", opts: ["T1 + T2", "T1 - T2", "T1 + T2 + T3", "T1 + T2 - T3"], ans: 2},
+        {q: "The best decision for a static inventory problem under risk is", opts: ["Negligible LT", "Zero opportunity cost", "Zero understock cost", "Zero overstock cost"], ans: 1},
+        {q: "A payoff matrix shows the possible payoffs against", opts: ["Order qty and demand", "Demand levels", "None", "Both a and b"], ans: 0},
+        {q: "VD and CLT, cost- or production-related data analysis is:", opts: ["Cost Analysis", "Benefit Analysis", "Demand Analysis", "None"], ans: 0},
+        {q: "Optimum stockout prob in benefit analysis depends on", opts: ["Loss and profit", "Marginal loss", "Profit and stockout cost", "Loss, profit, and stockout cost"], ans: 3},
+        {q: "In case of cost analysis, total inventory cost minimized with respect to", opts: ["Lead time", "Order quantity", "Annual demand", "Maximum demand"], ans: 1},
+        {q: "Single-order inventory characterized by", opts: ["Outside/inside supply, const/var demand", "Out/In, Const/Var demand, Const/Var lead time", "Outside supply, constant", "Inside supply, variable"], ans: 1},
+        {q: "Optimum order quantity x determined by formula:", opts: ["cs / (cs + c)", "(c - v) / cs", "(c - v) / (cs + c - v)", "cs / (cs + c - v)"], ans: 3},
+        {q: "Normal demand mean 100 SD 20. Cost 100, Understock 1000. Qty?", opts: ["100", "120", "126", "136"], ans: 2},
+        {q: "Typical Christmas tree problem, expected payoff calculated by", opts: ["Qty and demand", "Demand and LT", "Probabilities and Qty", "Probabilities and Payoffs"], ans: 3},
+        {q: "Importance based on criticality, classification suggested is", opts: ["H-M-L", "A-B-C", "V-E-D", "All"], ans: 2},
+        {q: "‘Importance’ can be defined from how many perspectives?", opts: ["3", "4", "5", "6"], ans: 3},
+        {q: "Importance measured in terms of closing inventory value classification:", opts: ["H-M-L", "A-B-C", "X-Y-Z", "F-S-N"], ans: 2},
+        {q: "Classified as per ‘consumption rate’ classification:", opts: ["H-M-L", "A-B-C", "V-E-D", "F-S-N"], ans: 3},
+        {q: "Recommended for non-moving or ‘dead’ stock classification:", opts: ["A-B-C", "F-S-N", "X-Y-Z", "V-E-D"], ans: 1},
+        {q: "For X items in X-Y-Z analysis, determination of ---------- is a must", opts: ["Excess stock", "Usage value", "Shortages", "Scarcity"], ans: 0},
+        {q: "‘Important’ inventory items are those that are", opts: ["Large in number", "Small in number", "Not necessary", "Sig improvement possible"], ans: 3},
+        {q: "A-B-C classification scheme recommended when", opts: ["Unit price controlled", "Annual demand less", "Annual usage value is factor", "Availability focus"], ans: 2},
+        {q: "For inventory control of spare parts system:", opts: ["V-E-D", "H-M-L", "A-B-C", "F-S-N"], ans: 0},
+        {q: "For A-class or V-class item, essential that", opts: ["Number min", "Existing system continues", "Criticality redefined", "Continual review"], ans: 3},
+        {q: "The term ‘inventory’ is defined as:", opts: ["List", "Qty hand", "Assets", "Idle resource econ value"], ans: 3},
+        {q: "Most difficult cost to estimate in inventory management:", opts: ["Holding", "Systemic", "Order", "Understock"], ans: 1},
+        {q: "Supplied from within production, relevant costs:", opts: ["Setup and order", "Price and order", "Carrying and setup", "Setup and production"], ans: 3},
+        {q: "Availability F/G on order received strategy:", opts: ["MTO", "ATO", "MTS", "ETS"], ans: 2},
+        {q: "Most important financial measure of performance:", opts: ["Current", "Quick", "Throughput", "Inv Turnover"], ans: 3},
+        {q: "Inventory problem under risk defined as", opts: ["Distributions known", "Uncertain", "Certain but unknown", "LT unknown"], ans: 0},
+        {q: "Inventory classified based on", opts: ["Utility", "State", "Both a or b", "Neither"], ans: 2},
+        {q: "Inventory in idle state awaits next function:", opts: ["Sale", "Use", "Transformation", "All"], ans: 3},
+        {q: "Based on utility of inventory, number of categories is:", opts: ["3", "6", "9", "12"], ans: 1},
+        {q: "No need of inventory if", opts: ["No supply", "No demand", "Demand instant", "Supply occurs as demand occurs"], ans: 3}
+    ];
+
+    let current = 0;
+    const size = 20;
+    const user = new Array(120).fill(null);
+
+    function render() {
+        const list = document.getElementById('q-list');
+        list.innerHTML = "";
+        const start = current * size;
+        const end = Math.min(start + size, 120);
+
+        for (let i = start; i < end; i++) {
+            const d = questions[i];
+            const div = document.createElement('div');
+            div.className = 'q-block';
+            div.innerHTML = `
+                <span class="q-text">${i + 1}. ${d.q}</span>
+                <div class="options">
+                    ${d.opts.map((o, idx) => `
+                        <label class="opt">
+                            <input type="radio" name="q${i}" value="${idx}" ${user[i] === idx ? 'checked' : ''} onchange="user[${i}]=${idx}">
+                            ${String.fromCharCode(97 + idx)}) ${o}
+                        </label>
+                    `).join('')}
+                </div>
+            `;
+            list.appendChild(div);
+        }
+        document.getElementById('pageIndicator').innerText = `Page ${current + 1} / 6`;
+        document.getElementById('prevBtn').style.visibility = current === 0 ? "hidden" : "visible";
+        document.getElementById('nextBtn').innerText = current === 5 ? "Submit Exam" : "Next";
+    }
+
+    function movePage(dir) {
+        if (dir === 1 && current === 5) {
+            submit();
+            return;
+        }
+        current += dir;
+        render();
+        window.scrollTo(0,0);
+    }
+
+    function submit() {
+        let score = 0;
+        questions.forEach((q, i) => { if (user[i] === q.ans) score++; });
+        document.getElementById('quiz-area').style.display = "none";
+        document.getElementById('timer').style.display = "none";
+        document.getElementById('score-screen').style.display = "block";
+        document.getElementById('points').innerText = score + " / 120";
+        const p = (score/120)*100;
+        document.getElementById('commentary').innerText = `Final Score: ${p.toFixed(1)}%. You are ready for PSG!`;
+    }
+
+    let timeLeft = 7200;
+    setInterval(() => {
+        let m = Math.floor(timeLeft / 60);
+        let s = timeLeft % 60;
+        document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+        if (timeLeft > 0) timeLeft--;
+    }, 1000);
+
+    render();
+</script>
+
+</body>
+</html>
